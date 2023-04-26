@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
+import 'models/task.dart';
+
 void main() {
   runApp(const MyApp());
 }
@@ -32,6 +34,10 @@ final TextEditingController todoController = TextEditingController();
 
 List<String> todos = [];
 List<DateTime> datas = [];
+List<Task> tasks = [];
+String? deletedTodo;
+DateTime? deletedTodoDate;
+int? deletedTodoInd;
 
 class _MyHomePageState extends State<MyHomePage> {
   @override
@@ -152,15 +158,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void delMensage(index) {
-    setState(() {
-      datas.removeAt(index);
-      todos.removeAt(index);
-    });
-
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Tarefa ${todos[index]} foi removido com sucesso',
+          'Tarefa: ${todos[index]} foi removido com sucesso',
           style: TextStyle(
             color: Color.fromARGB(255, 0, 0, 0),
           ),
@@ -169,11 +170,23 @@ class _MyHomePageState extends State<MyHomePage> {
         action: SnackBarAction(
           label: 'Desfazer',
           textColor: Color(0xff115B98),
-          onPressed: () {},
+          onPressed: () {
+            setState(() {
+              todos.insert(deletedTodoInd!, deletedTodo!);
+              datas.insert(deletedTodoInd!, deletedTodoDate!);
+            });
+          },
         ),
         duration: const Duration(seconds: 5),
       ),
     );
+    setState(() {
+      deletedTodo = todos[index];
+      deletedTodoDate = datas[index];
+      deletedTodoInd = index;
+      datas.removeAt(index);
+      todos.removeAt(index);
+    });
   }
 
   void showDeleteTodosConfirmationDialog(context) {
