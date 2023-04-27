@@ -1,3 +1,4 @@
+import 'package:apptarefas/repositories/tasks_repository.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
@@ -29,13 +30,25 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-final TextEditingController todoController = TextEditingController();
+final TextEditingController tasksController = TextEditingController();
+final TasksRepository tasksRepository = TasksRepository();
 
 List<Task> tasks = [];
 Task? deletedTask;
 int? deletedTaskInd;
 
 class _MyHomePageState extends State<MyHomePage> {
+  @override
+  void initState() {
+    super.initState();
+
+    tasksRepository.getTasksList().then((value) {
+      setState(() {
+        tasks = value;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
@@ -50,22 +63,27 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   Expanded(
                     child: TextField(
-                      controller: todoController,
+                      controller: tasksController,
                       decoration: const InputDecoration(
-                          border: OutlineInputBorder(),
-                          labelText: 'Adicione uma tarefa',
-                          hintText: 'Ex: Estudar Flutter'),
+                        border: OutlineInputBorder(),
+                        labelText: 'Adicione uma tarefa',
+                        hintText: 'Ex: Estudar Flutter',
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () {
-                      setState(() {
-                        final newTask = Task(
-                            text: todoController.text, time: DateTime.now());
-                        tasks.add(newTask);
-                      });
-                      todoController.clear();
+                      if (tasksController.text == '') {
+                      } else {
+                        setState(() {
+                          final newTask = Task(
+                              text: tasksController.text, time: DateTime.now());
+                          tasks.add(newTask);
+                        });
+                        tasksController.clear();
+                        tasksRepository.saveTasksList(tasks);
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                         primary: const Color(0xff115B98),
@@ -186,6 +204,7 @@ class _MyHomePageState extends State<MyHomePage> {
               // todos.insert(deletedTodoInd!, deletedTodo!);
               // datas.insert(deletedTodoInd!, deletedTodoDate!);
             });
+            tasksRepository.saveTasksList(tasks);
           },
         ),
         duration: const Duration(seconds: 5),
@@ -195,12 +214,8 @@ class _MyHomePageState extends State<MyHomePage> {
       deletedTask = tasks[index];
       deletedTaskInd = index;
       tasks.removeAt(index);
-      // deletedTodo = todos[index];
-      // deletedTodoDate = datas[index];
-      // deletedTodoInd = index;
-      // datas.removeAt(index);
-      // todos.removeAt(index);
     });
+    tasksRepository.saveTasksList(tasks);
   }
 
   void showDeleteTodosConfirmationDialog(context) {
@@ -235,5 +250,6 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       tasks.clear();
     });
+    tasksRepository.saveTasksList(tasks);
   }
 }
