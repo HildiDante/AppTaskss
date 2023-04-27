@@ -1,5 +1,5 @@
 class Task {
-  Task({required this.title, required this.dateTime});
-  String title;
-  DateTime dateTime;
+  Task({required this.text, required this.time});
+  String text;
+  DateTime time;
 }

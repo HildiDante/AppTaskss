@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
-
 import 'models/task.dart';
 
 void main() {
@@ -32,12 +31,9 @@ class MyHomePage extends StatefulWidget {
 
 final TextEditingController todoController = TextEditingController();
 
-List<String> todos = [];
-List<DateTime> datas = [];
 List<Task> tasks = [];
-String? deletedTodo;
-DateTime? deletedTodoDate;
-int? deletedTodoInd;
+Task? deletedTask;
+int? deletedTaskInd;
 
 class _MyHomePageState extends State<MyHomePage> {
   @override
@@ -65,8 +61,9 @@ class _MyHomePageState extends State<MyHomePage> {
                   ElevatedButton(
                     onPressed: () {
                       setState(() {
-                        todos.add(todoController.text);
-                        datas.add(DateTime.now());
+                        final newTask = Task(
+                            text: todoController.text, time: DateTime.now());
+                        tasks.add(newTask);
                       });
                       todoController.clear();
                     },
@@ -86,43 +83,56 @@ class _MyHomePageState extends State<MyHomePage> {
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
-                  itemCount: todos.length,
+                  itemCount: tasks.length,
                   itemBuilder: (context, index) {
-                    return Container(
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(4),
-                          color: Colors.grey[200]),
-                      margin: const EdgeInsets.symmetric(vertical: 2),
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                DateFormat('dd/MM/yy - HH:mm')
-                                    .format(datas[index]),
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                              Text(
-                                todos[index],
-                                style: const TextStyle(
-                                    fontSize: 16, fontWeight: FontWeight.w600),
-                              ),
-                            ],
-                          ),
-                          IconButton(
+                    return Slidable(
+                      child: Container(
+                        decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(4),
+                            color: Colors.grey[200]),
+                        margin: const EdgeInsets.symmetric(vertical: 2),
+                        padding: const EdgeInsets.all(16),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  DateFormat('dd/MM/yy - HH:mm')
+                                      .format(tasks[index].time),
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                                Text(
+                                  tasks[index].text,
+                                  style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            )
+                          ],
+                        ),
+                      ),
+                      endActionPane: ActionPane(
+                        extentRatio: 0.22,
+                        motion: Expanded(
+                          child: ElevatedButton(
+                            style: ButtonStyle(
+                              backgroundColor:
+                                  MaterialStateProperty.all<Color>(Colors.red),
+                            ),
                             onPressed: () {
                               delMensage(index);
                             },
-                            icon: const Icon(
-                              Icons.delete_outline,
-                              color: Color(0xff115B98),
-                              size: 35,
+                            child: Icon(
+                              Icons.delete,
+                              color: Color.fromARGB(255, 231, 233, 235),
+                              size: 30,
                             ),
                           ),
-                        ],
+                        ),
+                        children: [],
                       ),
                     );
                   },
@@ -135,7 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 children: [
                   Expanded(
                       child: Text(
-                    'Você possui ${todos.length} tarefas pendentes',
+                    'Você possui ${tasks.length} tarefas pendentes',
                     style: const TextStyle(fontSize: 13),
                   )),
                   const SizedBox(width: 8),
@@ -161,7 +171,7 @@ class _MyHomePageState extends State<MyHomePage> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          'Tarefa: ${todos[index]} foi removido com sucesso',
+          'Tarefa: ${tasks[index].text} foi removido com sucesso',
           style: TextStyle(
             color: Color.fromARGB(255, 0, 0, 0),
           ),
@@ -172,8 +182,9 @@ class _MyHomePageState extends State<MyHomePage> {
           textColor: Color(0xff115B98),
           onPressed: () {
             setState(() {
-              todos.insert(deletedTodoInd!, deletedTodo!);
-              datas.insert(deletedTodoInd!, deletedTodoDate!);
+              tasks.insert(deletedTaskInd!, deletedTask!);
+              // todos.insert(deletedTodoInd!, deletedTodo!);
+              // datas.insert(deletedTodoInd!, deletedTodoDate!);
             });
           },
         ),
@@ -181,11 +192,14 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
     setState(() {
-      deletedTodo = todos[index];
-      deletedTodoDate = datas[index];
-      deletedTodoInd = index;
-      datas.removeAt(index);
-      todos.removeAt(index);
+      deletedTask = tasks[index];
+      deletedTaskInd = index;
+      tasks.removeAt(index);
+      // deletedTodo = todos[index];
+      // deletedTodoDate = datas[index];
+      // deletedTodoInd = index;
+      // datas.removeAt(index);
+      // todos.removeAt(index);
     });
   }
 
@@ -219,8 +233,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   deleteAllTodos() {
     setState(() {
-      todos.clear();
-      datas.clear();
+      tasks.clear();
     });
   }
 }
